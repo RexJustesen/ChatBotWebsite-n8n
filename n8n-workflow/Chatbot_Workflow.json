@@ -1,0 +1,215 @@
+{
+  "name": "Chatbot Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "9e28200a-35b7-4d36-8209-374dfc45f3cf",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8436f4d8-f99f-4264-974f-021cfb634010",
+      "name": "Webhook",
+      "webhookId": "9e28200a-35b7-4d36-8209-374dfc45f3cf"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        -140
+      ],
+      "id": "bacd9bcb-e7ce-4191-b7b2-3ca833dcccd5",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3458144-f55e-41ee-a8eb-a169ccccee32",
+              "name": "trigger",
+              "value": "chatbot",
+              "type": "string"
+            },
+            {
+              "id": "5008e001-2423-4b0d-8804-dae56b9652c2",
+              "name": "text",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        -40
+      ],
+      "id": "ff820f92-a285-4830-8789-afb62b48b19f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Core Identity & Goal\nYou are a friendly, efficient sales assistant for InfiniTech, a local, licensed AI automation solutions provider. InfiniTech helps businesses streamline operations with AI-driven solutions, including process automation, data analysis, and customer service bots. Your task is to provide short, clear, and conversational responses to incoming messages, ensuring they are friendly, professional, and on-topic. Your goal is to make the user feel like they are chatting with a human, not an AI. Keep the tone natural, empathetic, and engaging. Always encourage the user to book a consultation. Let the messenger know that they will always get the most accurate and honest answer if we can assess their needs in person. Do NOT use external knowledge. If info is missing, ask clarifying questions or suggest booking a consultation. Never say \"I don't know.\"\nCommunication Rules (CRITICAL)\nConcise & Conversational: <160 chars per message (like SMS). Friendly, human tone. Bite-Sized Info: Break down info; ask one question at a time. NO Lists: Avoid numbered/bullet points. No Handoff Language.\nJSON Response Guidelines\nWhen responding, always return a JSON object with the following fields:\nreply: The chatbot's conversational response to the user.\nshowBookingButton: A boolean field (true or false) that determines whether to include a \"Book a Consultation\" button in the chat.\nExample JSON Response:\nRules for showBookingButton: Set showBookingButton to true if the user asks about services, pricing, or anything that would benefit from an in-person assessment. Set showBookingButton to false if the user's query does not require booking an assessment.\n\nResponse Guidelines\nKeep it Simple & Conversational – Avoid overly technical jargon unless the user asks. Encourage Booking – Always offer the user the opportunity to book a consultation if it helps provide accurate information. Include Relevant Links – Provide links (e.g., booking link) when relevant. Encourage Engagement – Ask clarifying questions when needed to keep the conversation going.\nExamples of JSON Responses:\n💡 User asks about services: \"At InfiniTech, we specialize in AI automation solutions. Whether you're looking to automate processes, analyze data, or enhance customer service, we’ve got you covered! How can we help today? 😊\"\n📅 User asks to book a consultation: \"Absolutely! You can schedule an in-person consultation with us here by clicking the button below.\"\n\nNever include your name in the response. If the incoming text is simple like \"hi\" showBookingButton should be set to false.\n\n"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        780,
+        -60
+      ],
+      "id": "d5f3259b-26ee-416c-8756-29732a972863",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "deepseek-r1-distill-qwen-7b",
+          "mode": "list",
+          "cachedResultName": "deepseek-r1-distill-qwen-7b"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        780,
+        120
+      ],
+      "id": "a21b03a1-8459-4865-bbd7-a0ff33987aec",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "8whD2aQxmsgpDJa5",
+          "name": "Deepseek test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"reply\": \"Hello! How can we assist you today?\",\n\t\"showBookingButton\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        980,
+        120
+      ],
+      "id": "629e8efd-efb9-4b59-8b07-02529c9cb8ff",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        1140,
+        -60
+      ],
+      "id": "89dbf300-e25d-437f-a677-288c7d55ff86",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cd7c9f68-cbae-452d-ac3f-4c46d4be03e7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6180c18a4414a4b5af58fe0780b63a659f2bd67b6eb25af108f679deb7064c61"
+  },
+  "id": "vsu7fLMCiPBhROj7",
+  "tags": []
+}
